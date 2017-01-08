@@ -22,5 +22,5 @@ build() {
 package() {
         cd "$srcdir/linux-$pkgver"
 	make INSTALL_HDR_PATH=${pkgdir}/usr/ headers_install
-	find ${pkgdir} \( -name .install -o -name ..install.cmd \) -delete
+	find ${pkgdir}/usr/ \( -name .install -o -name ..install.cmd \) -delete
 }
