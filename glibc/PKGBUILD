@@ -1,0 +1,79 @@
+# Maintainer: Egor Mikhailov <xeneloid@yandex.ru>
+
+pkgname=glibc
+pkgver=2.24
+pkgrel=1
+pkgdesc="The C library used in the GNU system"
+arch=('x86_64')
+url="http://www.gnu.org/software/libc/"
+license=('GPL')
+groups=('core')
+depends=('tzdata' 'linux-api-headers')
+makedepends=('gcc')
+source=("http://ftp.gnu.org/gnu/$pkgname/$pkgname-$pkgver.tar.xz"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/host.conf"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/hosts"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/ld.so.conf"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/nsswitch.conf"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/resolv.conf"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/locale-gen"
+"https://raw.githubusercontent.com/linuxleaf/files/master/$pkgname/locale.gen.txt")
+md5sums=('SKIP'
+'SKIP'
+'SKIP'
+'SKIP'
+'SKIP'
+'SKIP'
+'SKIP'
+'SKIP')
+
+build() {
+        cd "$srcdir/$pkgname-$pkgver"
+	mkdir -v build
+	CPPFLAGS=${CPPFLAGS/-D_FORTIFY_SOURCE=2/}
+	CFLAGS=${CFLAGS/-fstack-protector-strong/}
+	LDFLAGS=${LDFLAGS/,-z,now/}
+	export LANGUAGE="C"
+	export LC_ALL="C"
+	export LANG="C"
+	cd       build
+	../configure --prefix=/usr          \
+	             --mandir=/usr/share/man \
+	             --infodir=/usr/share/info \
+	             --libexecdir=/usr/lib \
+	             --with-headers=/usr/include \
+	             --enable-kernel=2.6.32 \
+	             --enable-add-ons \
+	             --enable-bind-now \
+	             --enable-static-nss \
+	             --disable-profile \
+	             --disable-werror \
+	             --enable-stackguard-randomization \
+	             --enable-lock-elision \
+	             --without-gd \
+	             --without-cvs \
+	             --without-selinux \
+	             --enable-multi-arch \
+	             --enable-obsolete-rpc
+	make
+}
+
+package() {
+        cd "$srcdir/$pkgname-$pkgver"
+	cd       build
+	install -dm755 ${pkgdir}/etc
+	touch ${pkgdir}/etc/ld.so.conf
+	make install_root=${pkgdir} install
+	rm -rf ${pkgdir}/etc/ld.so.conf
+	touch ${pkgdir}/etc/ld.so.cache
+	cp -v ../nscd/nscd.conf ${pkgdir}/etc/nscd.conf
+	mkdir -pv ${pkgdir}/var/cache/nscd
+	install -m 0644 ${srcdir}/{hosts,resolv.conf,nsswitch.conf,host.conf,ld.so.conf} ${pkgdir}/etc
+	mkdir -pv ${pkgdir}/etc/ld.so.conf.d
+	mkdir -pv /usr/lib/locale
+	install -m644 ${srcdir}/locale.gen.txt ${pkgdir}/etc/locale.gen
+	sed -e '1,3d' -e 's|/| |g' -e 's|\\| |g' -e 's|^|#|g' \
+	${srcdir}/${pkgname}-${pkgver}/localedata/SUPPORTED >> ${pkgdir}/etc/locale.gen
+	install -m755 ${srcdir}/locale-gen ${pkgdir}/usr/bin
+}
+
