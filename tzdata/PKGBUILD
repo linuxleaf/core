@@ -1,0 +1,32 @@
+# Maintainer: Egor Mikhailov <xeneloid@yandex.ru>
+
+pkgname=tzdata
+pkgver=2016j
+pkgrel=1
+pkgdesc="Sources for Time Zone and Daylight Saving Time Data"
+arch=('any')
+url="ftp://ftp.iana.org/tz/code/tz-link.htm"
+license=('GPL')
+groups=('core')
+depends=()
+makedepends=()
+optdepends=()
+source=("http://www.iana.org/time-zones/repository/releases/$pkgname$pkgver.tar.gz"
+"http://www.iana.org/time-zones/repository/releases/tzcode$pkgver.tar.gz")
+md5sums=('SKIP'
+'SKIP')
+
+package() {
+
+	make -j1 install \
+	DESTDIR=${pkgdir} \
+	TOPDIR=/usr \
+	TZDIR=/usr/share/zoneinfo \
+	ETCDIR=/usr/sbin \
+	MANDIR=/usr/share/man 
+
+	rm -r ${pkgdir}/usr/share/man/man{5,8}
+
+	install -d $PKG/usr/bin
+	mv ${pkgdir}/usr/{sbin/tzselect,bin}
+}
