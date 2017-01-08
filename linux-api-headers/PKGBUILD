@@ -15,12 +15,12 @@ source=("http://linux-libre.fsfla.org/pub/linux-libre/releases/$pkgver-gnu/linux
 md5sums=('SKIP')
 
 build() {
-        cd "$srcdir/linux-libre-$pkgver-gnu"
+        cd "$srcdir/linux-$pkgver"
 	make mrproper
 }
 
 package() {
-        cd "$srcdir/linux-libre-$pkgver-gnu"
+        cd "$srcdir/linux-$pkgver"
 	make INSTALL_HDR_PATH=${pkgdir}/usr/ headers_install
 	find ${pkgdir}/usr/ \( -name .install -o -name ..install.cmd \) -delete
 }
